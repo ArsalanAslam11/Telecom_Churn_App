@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telecom Churn Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff3b2e;
+            font-size: 40px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background: white;
+            width: 450px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            background: #ff3b2e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e63225;
+        }
+
+        table {
+            margin: 40px auto;
+            width: 90%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #ff3b2e;
+            color: white;
+        }
+
+        h2 {
+            margin-top: 50px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Telecom Churn Prediction</h1>
+
+<!-- Prediction Form -->
+<form method="POST">
+    <label>Tenure (months)</label>
+    <input type="number" name="tenure" required>
+
+    <label>Monthly Charges</label>
+    <input type="number" step="0.01" name="monthly" required>
+
+    <label>Total Charges</label>
+    <input type="number" step="0.01" name="total" required>
+
+    <label>Contract Type</label>
+    <select name="contract">
+        <option>Month-to-month</option>
+        <option>One year</option>
+        <option>Two year</option>
+    </select>
+
+    <label>Tech Support</label>
+    <select name="tech">
+        <option>Yes</option>
+        <option>No</option>
+    </select>
+
+    <label>Online Security</label>
+    <select name="security">
+        <option>Yes</option>
+        <option>No</option>
+    </select>
+
+    <button type="submit">Predict</button>
+</form>
+
+<!-- Prediction Table -->
+{% if submissions %}
+<table>
+    <tr>
+        <th>Tenure</th>
+        <th>Monthly</th>
+        <th>Total</th>
+        <th>Contract</th>
+        <th>Tech Support</th>
+        <th>Online Security</th>
+        <th>Probability of Churn</th>
+    </tr>
+    {% for s in submissions %}
+    <tr>
+        <td>{{ s.tenure }}</td>
+        <td>{{ s.MonthlyCharges }}</td>
+        <td>{{ s.TotalCharges }}</td>
+        <td>{{ s.Contract }}</td>
+        <td>{{ s.TechSupport }}</td>
+        <td>{{ s.OnlineSecurity }}</td>
+        <td>{{ s.Probability }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+<!-- Feedback Form -->
+<h2>User Feedback</h2>
+
+<form method="POST" action="/feedback">
+    <label>Name (optional)</label>
+    <input type="text" name="name">
+
+    <label>Role</label>
+    <select name="role">
+        <option>Student</option>
+        <option>Peer</option>
+        <option>Instructor</option>
+    </select>
+
+    <label>System Rating (1–5)</label>
+    <select name="rating">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select>
+
+    <label>Was the prediction useful?</label>
+    <select name="useful">
+        <option>Yes</option>
+        <option>No</option>
+    </select>
+
+    <label>Suggestions</label>
+    <textarea name="suggestions"></textarea>
+
+    <button type="submit">Submit Feedback</button>
+</form>
+
+</body>
+</html>
