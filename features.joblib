@@ -1,0 +1,5 @@
+import joblib
+import pandas as pd
+
+feature_list = X.columns.tolist()
+joblib.dump(feature_list, "features.joblib")
