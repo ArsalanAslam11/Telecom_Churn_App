@@ -50,7 +50,7 @@ if submit_button:
     record = {"CustomerID": customer_id, "Tenure": tenure, "MonthlyCharges": monthly_charges,
               "ContractType": contract_type, "Prediction": prediction}
     
-    predictions_file = "predictions.csv"
+    predictions_file = os.path.join(os.path.dirname(__file__), "predictions.csv")
     if os.path.exists(predictions_file):
         df = pd.read_csv(predictions_file)
         df = pd.concat([df, pd.DataFrame([record])], ignore_index=True)
@@ -62,23 +62,23 @@ if submit_button:
 # Feedback section
 # ---------------------------
 st.markdown("### 💬 Submit Feedback")
+
 with st.form(key="feedback_form"):
     feedback_name = st.text_input("Your Name")
     feedback_text = st.text_area("Your Feedback")
     feedback_button = st.form_submit_button("Submit Feedback")
 
 if feedback_button:
-    # Save feedback directly to CSV
     feedback_record = {"Name": feedback_name, "Feedback": feedback_text}
 
-    feedback_file = "user_feedback.csv"
+    # Use absolute path based on script location
+    feedback_file = os.path.join(os.path.dirname(__file__), "user_feedback.csv")
     if os.path.exists(feedback_file):
         df_feedback = pd.read_csv(feedback_file)
         df_feedback = pd.concat([df_feedback, pd.DataFrame([feedback_record])], ignore_index=True)
     else:
         df_feedback = pd.DataFrame([feedback_record])
 
+    # Save immediately
     df_feedback.to_csv(feedback_file, index=False)
     st.success("✅ Thank you! Your feedback has been recorded.")
-
-# Note: Removed showing previous feedback to all users
