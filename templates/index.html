@@ -1,184 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telecom Churn Prediction</title>
     <style>
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            background: linear-gradient(to right, #74ebd5, #ACB6E5);
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        /* Header */
+        header {
             text-align: center;
-        }
-
-        h1 {
-            color: #ff3b2e;
-            font-size: 40px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        form {
-            background: white;
-            width: 450px;
-            margin: auto;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-
-        label {
-            display: block;
-            margin-top: 12px;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 12px;
-            width: 100%;
-            background: #ff3b2e;
+            padding: 40px 20px;
             color: white;
+        }
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Form Container */
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Input fields */
+        input[type=text], input[type=number], select {
+            width: 100%;
+            padding: 12px 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        /* Button */
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin-top: 15px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
             cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s ease;
         }
 
         button:hover {
-            background: #e63225;
+            background-color: #45a049;
         }
 
+        /* Prediction Table */
         table {
-            margin: 40px auto;
-            width: 90%;
+            width: 100%;
             border-collapse: collapse;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 20px;
         }
-
-        th, td {
-            padding: 10px;
+        table, th, td {
             border: 1px solid #ddd;
         }
-
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
         th {
-            background: #ff3b2e;
+            background-color: #4CAF50;
             color: white;
         }
 
-        h2 {
-            margin-top: 50px;
-            color: #333;
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-<h1>Telecom Churn Prediction</h1>
+<header>
+    <h1>📊 Telecom Churn Prediction</h1>
+    <p>Enter customer details to predict churn probability</p>
+</header>
 
-<!-- Prediction Form -->
-<form method="POST">
-    <label>Tenure (months)</label>
-    <input type="number" name="tenure" required>
+<div class="container">
+    <form action="/predict" method="post">
+        <input type="text" name="CustomerID" placeholder="Customer ID" required>
+        <input type="number" name="Tenure" placeholder="Tenure (Months)" required>
+        <input type="number" name="MonthlyCharges" placeholder="Monthly Charges" required>
+        <select name="ContractType" required>
+            <option value="">Select Contract Type</option>
+            <option value="Month-to-Month">Month-to-Month</option>
+            <option value="One Year">One Year</option>
+            <option value="Two Year">Two Year</option>
+        </select>
+        <button type="submit">Predict Churn</button>
+    </form>
 
-    <label>Monthly Charges</label>
-    <input type="number" step="0.01" name="monthly" required>
+    <!-- Table for displaying input and predictions -->
+    <table id="predictionTable">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Tenure</th>
+                <th>Monthly Charges</th>
+                <th>Contract Type</th>
+                <th>Churn Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Prediction rows will appear here -->
+        </tbody>
+    </table>
+</div>
 
-    <label>Total Charges</label>
-    <input type="number" step="0.01" name="total" required>
-
-    <label>Contract Type</label>
-    <select name="contract">
-        <option>Month-to-month</option>
-        <option>One year</option>
-        <option>Two year</option>
-    </select>
-
-    <label>Tech Support</label>
-    <select name="tech">
-        <option>Yes</option>
-        <option>No</option>
-    </select>
-
-    <label>Online Security</label>
-    <select name="security">
-        <option>Yes</option>
-        <option>No</option>
-    </select>
-
-    <button type="submit">Predict</button>
-</form>
-
-<!-- Prediction Table -->
-{% if submissions %}
-<table>
-    <tr>
-        <th>Tenure</th>
-        <th>Monthly</th>
-        <th>Total</th>
-        <th>Contract</th>
-        <th>Tech Support</th>
-        <th>Online Security</th>
-        <th>Probability of Churn</th>
-    </tr>
-    {% for s in submissions %}
-    <tr>
-        <td>{{ s.tenure }}</td>
-        <td>{{ s.MonthlyCharges }}</td>
-        <td>{{ s.TotalCharges }}</td>
-        <td>{{ s.Contract }}</td>
-        <td>{{ s.TechSupport }}</td>
-        <td>{{ s.OnlineSecurity }}</td>
-        <td>{{ s.Probability }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% endif %}
-
-<!-- Feedback Form -->
-<h2>User Feedback</h2>
-
-<form method="POST" action="/feedback">
-    <label>Name (optional)</label>
-    <input type="text" name="name">
-
-    <label>Role</label>
-    <select name="role">
-        <option>Student</option>
-        <option>Peer</option>
-        <option>Instructor</option>
-    </select>
-
-    <label>System Rating (1–5)</label>
-    <select name="rating">
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-    </select>
-
-    <label>Was the prediction useful?</label>
-    <select name="useful">
-        <option>Yes</option>
-        <option>No</option>
-    </select>
-
-    <label>Suggestions</label>
-    <textarea name="suggestions"></textarea>
-
-    <button type="submit">Submit Feedback</button>
-</form>
+<footer>
+    &copy; 2025 Telecom Churn Prediction App
+</footer>
 
 </body>
 </html>
