@@ -38,22 +38,18 @@ with st.form(key="prediction_form"):
 # Handle prediction
 # ---------------------------
 if submit_button:
-    # Encode contract type if your model requires numeric encoding
+    # Encode contract type
     contract_mapping = {"Month-to-Month":0, "One Year":1, "Two Year":2}
     contract_encoded = contract_mapping[contract_type]
 
-    # Prepare input (update columns based on your model)
     input_data = [[tenure, monthly_charges, contract_encoded]]
-    
-    # Make prediction
     prediction = model.predict(input_data)[0]
     st.success(f"Prediction for Customer {customer_id}: {prediction}")
 
-    # Save input + prediction to a CSV
+    # Save input + prediction to CSV
     record = {"CustomerID": customer_id, "Tenure": tenure, "MonthlyCharges": monthly_charges,
               "ContractType": contract_type, "Prediction": prediction}
     
-    # Check if CSV exists
     predictions_file = "predictions.csv"
     if os.path.exists(predictions_file):
         df = pd.read_csv(predictions_file)
@@ -61,13 +57,6 @@ if submit_button:
     else:
         df = pd.DataFrame([record])
     df.to_csv(predictions_file, index=False)
-
-# ---------------------------
-# Show prediction history
-# ---------------------------
-if os.path.exists("predictions.csv"):
-    st.markdown("### 📝 Prediction History")
-    st.table(pd.read_csv("predictions.csv"))
 
 # ---------------------------
 # Feedback section
@@ -79,6 +68,7 @@ with st.form(key="feedback_form"):
     feedback_button = st.form_submit_button("Submit Feedback")
 
 if feedback_button:
+    # Save feedback directly to CSV
     feedback_record = {"Name": feedback_name, "Feedback": feedback_text}
 
     feedback_file = "user_feedback.csv"
@@ -87,13 +77,8 @@ if feedback_button:
         df_feedback = pd.concat([df_feedback, pd.DataFrame([feedback_record])], ignore_index=True)
     else:
         df_feedback = pd.DataFrame([feedback_record])
-    df_feedback.to_csv(feedback_file, index=False)
 
+    df_feedback.to_csv(feedback_file, index=False)
     st.success("✅ Thank you! Your feedback has been recorded.")
 
-# ---------------------------
-# Show previous feedback
-# ---------------------------
-if os.path.exists("user_feedback.csv"):
-    st.markdown("### 🗣️ Previous Feedback")
-    st.table(pd.read_csv("user_feedback.csv"))
+# Note: Removed showing previous feedback to all users
