@@ -4,13 +4,16 @@ import joblib
 import os
 
 # ---------------------------
-# Load your trained model
+# Load the trained model and feature columns
 # ---------------------------
 MODEL_FILE = "rf_model.joblib"
-if os.path.exists(MODEL_FILE):
+FEATURES_FILE = "features.joblib"  # optional, if you saved feature names separately
+
+if os.path.exists(MODEL_FILE) and os.path.exists(FEATURES_FILE):
     model = joblib.load(MODEL_FILE)
+    features = joblib.load(FEATURES_FILE)  # list of column names used in training
 else:
-    st.error("Model file not found!")
+    st.error("Model or features file not found!")
     st.stop()
 
 # ---------------------------
@@ -38,47 +41,52 @@ with st.form(key="prediction_form"):
 # Handle prediction
 # ---------------------------
 if submit_button:
-    # Encode contract type
-    contract_mapping = {"Month-to-Month":0, "One Year":1, "Two Year":2}
-    contract_encoded = contract_mapping[contract_type]
+    # Create input DataFrame with zeros
+    input_df = pd.DataFrame([[tenure, monthly_charges] + [0]*(len(features)-2)], columns=features)
 
-    input_data = [[tenure, monthly_charges, contract_encoded]]
-    prediction = model.predict(input_data)[0]
-    st.success(f"Prediction for Customer {customer_id}: {prediction}")
+    # Set the correct contract type column to 1
+    contract_column = f"ContractType_{contract_type}"
+    if contract_column in input_df.columns:
+        input_df[contract_column] = 1
 
-    # Save input + prediction to CSV
-    record = {"CustomerID": customer_id, "Tenure": tenure, "MonthlyCharges": monthly_charges,
-              "ContractType": contract_type, "Prediction": prediction}
-    
-    predictions_file = os.path.join(os.path.dirname(__file__), "predictions.csv")
-    if os.path.exists(predictions_file):
-        df = pd.read_csv(predictions_file)
-        df = pd.concat([df, pd.DataFrame([record])], ignore_index=True)
-    else:
-        df = pd.DataFrame([record])
-    df.to_csv(predictions_file, index=False)
+    # Make prediction
+    try:
+        prediction = model.predict(input_df)[0]
+        st.success(f"Prediction for Customer {customer_id}: {prediction}")
+
+        # Save input + prediction to CSV
+        record = {"CustomerID": customer_id, "Tenure": tenure, "MonthlyCharges": monthly_charges,
+                  "ContractType": contract_type, "Prediction": prediction}
+        
+        predictions_file = os.path.join(os.path.dirname(__file__), "predictions.csv")
+        if os.path.exists(predictions_file):
+            df = pd.read_csv(predictions_file)
+            df = pd.concat([df, pd.DataFrame([record])], ignore_index=True)
+        else:
+            df = pd.DataFrame([record])
+        df.to_csv(predictions_file, index=False)
+    except Exception as e:
+        st.error(f"Error making prediction: {e}")
 
 # ---------------------------
 # Feedback section
 # ---------------------------
 st.markdown("### 💬 Submit Feedback")
-
 with st.form(key="feedback_form"):
     feedback_name = st.text_input("Your Name")
     feedback_text = st.text_area("Your Feedback")
     feedback_button = st.form_submit_button("Submit Feedback")
 
 if feedback_button:
+    # Save feedback immediately
     feedback_record = {"Name": feedback_name, "Feedback": feedback_text}
-
-    # Use absolute path based on script location
     feedback_file = os.path.join(os.path.dirname(__file__), "user_feedback.csv")
     if os.path.exists(feedback_file):
         df_feedback = pd.read_csv(feedback_file)
         df_feedback = pd.concat([df_feedback, pd.DataFrame([feedback_record])], ignore_index=True)
     else:
         df_feedback = pd.DataFrame([feedback_record])
-
-    # Save immediately
     df_feedback.to_csv(feedback_file, index=False)
     st.success("✅ Thank you! Your feedback has been recorded.")
+
+# Note: previous feedback is NOT shown to users
