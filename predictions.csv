@@ -1,0 +1,2 @@
+CustomerID,Tenure,MonthlyCharges,Contract,Prediction,Probability
+225191,1,500.0,Month-to-month,No Churn,0.16
