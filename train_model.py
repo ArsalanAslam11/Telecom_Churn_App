@@ -8,7 +8,7 @@ import joblib
 
 df = pd.read_csv("churn_cleaned.csv")
 
-# 🔥 SELECT ONLY FEATURES YOU USE IN STREAMLIT
+#  SELECT ONLY FEATURES YOU USE IN STREAMLIT
 features = ["tenure", "MonthlyCharges", "Contract"]
 target = "Churn"
 
@@ -36,4 +36,4 @@ pipeline.fit(X_train, y_train)
 
 joblib.dump(pipeline, "rf_model.joblib")
 
-print("✅ Model trained with selected features only")
+print(" Model trained with selected features only")

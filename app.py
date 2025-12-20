@@ -9,7 +9,7 @@ import os
 MODEL_FILE = "rf_model.joblib"
 
 if not os.path.exists(MODEL_FILE):
-    st.error("❌ Model file not found. Train the model first.")
+    st.error(" Model file not found. Train the model first.")
     st.stop()
 
 model = joblib.load(MODEL_FILE)
@@ -17,10 +17,10 @@ model = joblib.load(MODEL_FILE)
 # ---------------------------
 # Page Config
 # ---------------------------
-st.set_page_config(page_title="📊 Telecom Churn Prediction", layout="centered")
+st.set_page_config(page_title=" Telecom Churn Prediction", layout="centered")
 
 st.markdown(
-    "<h1 style='text-align:center; color:#4CAF50;'>📊 Telecom Churn Prediction</h1>",
+    "<h1 style='text-align:center; color:#4CAF50;'> Telecom Churn Prediction</h1>",
     unsafe_allow_html=True
 )
 
@@ -85,13 +85,13 @@ if submit:
 # Prediction History
 # ---------------------------
 if os.path.exists("predictions.csv"):
-    st.markdown("### 📝 Prediction History")
+    st.markdown("###  Prediction History")
     st.dataframe(pd.read_csv("predictions.csv"))
 
 # ---------------------------
 # Feedback
 # ---------------------------
-st.markdown("### 💬 Feedback")
+st.markdown("###  Feedback")
 
 with st.form("feedback_form"):
     name = st.text_input("Your Name")
@@ -109,8 +109,8 @@ if fb_submit:
         df_fb = pd.DataFrame([fb_record])
 
     df_fb.to_csv(fb_file, index=False)
-    st.success("✅ Feedback saved")
+    st.success(" Feedback saved")
 
 if os.path.exists("user_feedback.csv"):
-    st.markdown("### 🗣 Previous Feedback")
+    st.markdown("###  Previous Feedback")
     st.dataframe(pd.read_csv("user_feedback.csv"))
