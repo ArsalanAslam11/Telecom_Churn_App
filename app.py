@@ -4,96 +4,113 @@ import joblib
 import os
 
 # ---------------------------
-# Load your trained model
+# Load Model Pipeline
 # ---------------------------
 MODEL_FILE = "rf_model.joblib"
-if os.path.exists(MODEL_FILE):
-    model = joblib.load(MODEL_FILE)
-else:
-    st.error("Model file not found!")
+
+if not os.path.exists(MODEL_FILE):
+    st.error("❌ Model file not found. Train the model first.")
     st.stop()
 
-# ---------------------------
-# Page title
-# ---------------------------
-st.set_page_config(page_title="📊 Telecom Churn Prediction", layout="centered")
-st.markdown(
-    "<h1 style='text-align: center; color: #4CAF50;'>📊 Telecom Churn Prediction</h1>",
-    unsafe_allow_html=True
-)
-st.markdown("<p style='text-align: center; color: #333;'>Enter customer details below and predict churn probability.</p>", unsafe_allow_html=True)
+model = joblib.load(MODEL_FILE)
 
 # ---------------------------
-# Input form
+# Page Config
 # ---------------------------
-with st.form(key="prediction_form"):
+st.set_page_config(page_title="📊 Telecom Churn Prediction", layout="centered")
+
+st.markdown(
+    "<h1 style='text-align:center; color:#4CAF50;'>📊 Telecom Churn Prediction</h1>",
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    "<p style='text-align:center;'>Enter customer details to predict churn</p>",
+    unsafe_allow_html=True
+)
+
+# ---------------------------
+# Input Form
+# ---------------------------
+with st.form("prediction_form"):
     customer_id = st.text_input("Customer ID")
     tenure = st.number_input("Tenure (Months)", min_value=0)
     monthly_charges = st.number_input("Monthly Charges", min_value=0.0)
-    contract_type = st.selectbox("Contract Type", ["Month-to-Month", "One Year", "Two Year"])
-    
-    submit_button = st.form_submit_button("Predict")
+
+    contract = st.selectbox(
+        "Contract Type",
+        ["Month-to-month", "One year", "Two year"]
+    )
+
+    submit = st.form_submit_button("Predict")
 
 # ---------------------------
-# Handle prediction
+# Prediction
 # ---------------------------
-if submit_button:
-    # Encode contract type if your model requires numeric encoding
-    contract_mapping = {"Month-to-Month":0, "One Year":1, "Two Year":2}
-    contract_encoded = contract_mapping[contract_type]
+if submit:
+    input_df = pd.DataFrame([{
+        "tenure": tenure,
+        "MonthlyCharges": monthly_charges,
+        "Contract": contract
+    }])
 
-    # Prepare input (update columns based on your model)
-    input_data = [[tenure, monthly_charges, contract_encoded]]
-    
-    # Make prediction
-    prediction = model.predict(input_data)[0]
-    st.success(f"Prediction for Customer {customer_id}: {prediction}")
+    prediction = model.predict(input_df)[0]
+    probability = model.predict_proba(input_df)[0][1]
 
-    # Save input + prediction to a CSV
-    record = {"CustomerID": customer_id, "Tenure": tenure, "MonthlyCharges": monthly_charges,
-              "ContractType": contract_type, "Prediction": prediction}
-    
-    # Check if CSV exists
-    predictions_file = "predictions.csv"
-    if os.path.exists(predictions_file):
-        df = pd.read_csv(predictions_file)
+    result = "Churn" if prediction == 1 else "No Churn"
+
+    st.success(f"Prediction: **{result}**")
+    st.info(f"Churn Probability: **{probability:.2%}**")
+
+    # Save history
+    record = {
+        "CustomerID": customer_id,
+        "Tenure": tenure,
+        "MonthlyCharges": monthly_charges,
+        "Contract": contract,
+        "Prediction": result,
+        "Probability": probability
+    }
+
+    file = "predictions.csv"
+    if os.path.exists(file):
+        df = pd.read_csv(file)
         df = pd.concat([df, pd.DataFrame([record])], ignore_index=True)
     else:
         df = pd.DataFrame([record])
-    df.to_csv(predictions_file, index=False)
+
+    df.to_csv(file, index=False)
 
 # ---------------------------
-# Show prediction history
+# Prediction History
 # ---------------------------
 if os.path.exists("predictions.csv"):
     st.markdown("### 📝 Prediction History")
-    st.table(pd.read_csv("predictions.csv"))
+    st.dataframe(pd.read_csv("predictions.csv"))
 
 # ---------------------------
-# Feedback section
+# Feedback
 # ---------------------------
-st.markdown("### 💬 Submit Feedback")
-with st.form(key="feedback_form"):
-    feedback_name = st.text_input("Your Name")
-    feedback_text = st.text_area("Your Feedback")
-    feedback_button = st.form_submit_button("Submit Feedback")
+st.markdown("### 💬 Feedback")
 
-if feedback_button:
-    feedback_record = {"Name": feedback_name, "Feedback": feedback_text}
+with st.form("feedback_form"):
+    name = st.text_input("Your Name")
+    feedback = st.text_area("Your Feedback")
+    fb_submit = st.form_submit_button("Submit")
 
-    feedback_file = "user_feedback.csv"
-    if os.path.exists(feedback_file):
-        df_feedback = pd.read_csv(feedback_file)
-        df_feedback = pd.concat([df_feedback, pd.DataFrame([feedback_record])], ignore_index=True)
+if fb_submit:
+    fb_record = {"Name": name, "Feedback": feedback}
+    fb_file = "user_feedback.csv"
+
+    if os.path.exists(fb_file):
+        df_fb = pd.read_csv(fb_file)
+        df_fb = pd.concat([df_fb, pd.DataFrame([fb_record])], ignore_index=True)
     else:
-        df_feedback = pd.DataFrame([feedback_record])
-    df_feedback.to_csv(feedback_file, index=False)
+        df_fb = pd.DataFrame([fb_record])
 
-    st.success("✅ Thank you! Your feedback has been recorded.")
+    df_fb.to_csv(fb_file, index=False)
+    st.success("✅ Feedback saved")
 
-# ---------------------------
-# Show previous feedback
-# ---------------------------
 if os.path.exists("user_feedback.csv"):
-    st.markdown("### 🗣️ Previous Feedback")
-    st.table(pd.read_csv("user_feedback.csv"))
+    st.markdown("### 🗣 Previous Feedback")
+    st.dataframe(pd.read_csv("user_feedback.csv"))

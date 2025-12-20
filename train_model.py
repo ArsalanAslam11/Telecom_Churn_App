@@ -1,31 +1,72 @@
-# train_model.py
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 
-# Load data
+# ---------------------------
+# Load dataset
+# ---------------------------
 df = pd.read_csv("churn_cleaned.csv")
 
-# Split features and target
-X = df.drop("Churn", axis=1)
+# Target
 y = df["Churn"]
+X = df.drop("Churn", axis=1)
 
-# Encode categorical variables
-X = pd.get_dummies(X, drop_first=True)
+# Identify columns
+num_cols = X.select_dtypes(include=["int64", "float64"]).columns
+cat_cols = X.select_dtypes(include=["object"]).columns
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# ---------------------------
+# Preprocessing
+# ---------------------------
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", "passthrough", num_cols),
+        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols)
+    ]
+)
 
-# Train Random Forest
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+# ---------------------------
+# Model
+# ---------------------------
+model = RandomForestClassifier(
+    n_estimators=200,
+    random_state=42
+)
 
-# Test accuracy
-y_pred = model.predict(X_test)
+# ---------------------------
+# Pipeline
+# ---------------------------
+pipeline = Pipeline(steps=[
+    ("preprocessor", preprocessor),
+    ("model", model)
+])
+
+# ---------------------------
+# Train/Test Split
+# ---------------------------
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# ---------------------------
+# Train
+# ---------------------------
+pipeline.fit(X_train, y_train)
+
+# ---------------------------
+# Evaluate
+# ---------------------------
+y_pred = pipeline.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 
-# Save the trained model
-joblib.dump(model, "rf_model.joblib")
-print("Model saved as rf_model.joblib")
+# ---------------------------
+# Save Pipeline
+# ---------------------------
+joblib.dump(pipeline, "rf_model.joblib")
+
+print("✅ Model + Preprocessing saved successfully")
